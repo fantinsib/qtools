@@ -18,9 +18,9 @@ import math
 import numpy as np
 import pytest
 
-from dupire_tools.black_scholes import black_scholes, black_scholes_price, compute_iv, iv_solver
-from dupire_tools.errors import VolSolverWarning
-from dupire_tools.options import MarketState, OptionContract, OptionQuote, OptionType
+from qtools.black_scholes import black_scholes, black_scholes_price, compute_iv, iv_solver
+from qtools.errors import VolSolverWarning
+from qtools.options import MarketState, OptionContract, OptionQuote, OptionType
 
 
 def test_black_scholes_call_price_known_value():
