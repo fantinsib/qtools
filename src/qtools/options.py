@@ -236,6 +236,31 @@ class OptionBook:
                 seen_mat.add(q.maturity)
                 seen_T.add(q.T)
         return sorted(list(seen_T))
+    
+    @property
+    def F(self) -> np.ndarray:
+        """
+        Returns the forwards of the options 
+        calculated as F = S * exp(r*T)
+        """
+        return self.S * np.exp(self.r * self.T)
+    
+    @property
+    def LM(self) -> np.ndarray:
+        """
+        Returns the log-moneyness of the options
+        calculated as k = log(K/F)
+        """
+        F = self.F
+        return np.log(self.K/F)
+    
+    @property    
+    def W(self) -> np.ndarray:
+        """
+        Returns the total variance of the options 
+        calculated as W = (iv**2) * T
+        """
+        return (self.iv)**2 * self.T
 
     @property
     def T(self):
