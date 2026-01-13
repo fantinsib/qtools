@@ -7,5 +7,12 @@ name = "qtools"
 version = "0.1.0"
 description = "Python tools for quantitative analysis"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "pytest",
+    "yfinance"
+
+]
 
