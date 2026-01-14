@@ -119,6 +119,8 @@ class OptionQuote:
     iv: Optional[float] = None
     market_price: Optional[float] = None
     model_price: Optional[float] = None
+    bid: Optional[float] = None
+    ask: Optional[float] = None
 
     def __post_init__(self):
         if self.contract is None:
@@ -286,6 +288,22 @@ class OptionBook:
     def r(self):
         return np.array([q.r for q in self.quote_list])
     
+    @property
+    def bid(self):
+        return np.array([q.bid for q in self.quote_list])
+
+    @property
+    def ask(self):
+        return np.array([q.ask for q in self.quote_list])
+    
+    @property
+    def spread(self):
+        return np.array([q.ask -q.bid for q in self.quote_list])
+    
+    @property
+    def market_prices(self):
+        return np.array([q.market_price for q in self.quote_list])
+    
     def __getitem__(self, key):
         quote_list = [q for q, keep in zip(self.quote_list, key) if keep]
         return OptionBook(quote_list)
@@ -370,7 +388,7 @@ def to_quote(df: pd.DataFrame, r: float, valuation_date: Optional[str] = None, t
         T = time_to_mat(row.maturity, valuation_date)
         contract = OptionContract(row.type, maturity=row.maturity, T=T, K=row.strike, ticker=ticker)
         market = MarketState(row.S, r)
-        quote_list.append(OptionQuote(contract, market, market_price = (row.bid+row.ask)/2)) #compute mid price
+        quote_list.append(OptionQuote(contract, market, market_price = (row.bid+row.ask)/2, bid=row.bid, ask=row.ask)) #compute mid price
 
     return quote_list
 

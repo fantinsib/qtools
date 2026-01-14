@@ -25,3 +25,14 @@ class VolSolverWarning(UserWarning):
 
 class VolSolverError(Exception):
     pass
+
+############## SVI
+
+class SVIParamError(Exception):
+    pass
+
+class SVIFitWarning(UserWarning):
+    pass
+
+class SVIFitError(Exception):
+    pass
