@@ -1,4 +1,5 @@
 # qtools
+![CI](https://github.com/fantinsib/qtools/actions/workflows/ci.yml/badge.svg)
 
 This repository contains a collection of utilities for working with European options. It provides structured representations for option contracts, market states, and quotes, tools to retrieve option chain data via yfinance and transform it into a consistent internal format, implementations of the Black–Scholes model for both scalar and vectorized pricing, a one-dimensional root-finding procedure for implied volatility computation, and functions for modeling and calibrating SVI total variance using least-squares methods.
 
