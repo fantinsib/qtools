@@ -60,7 +60,7 @@ jobs:
 
       - name: Build documentation
         run: |
-          pdoc dupire_tools -o docs
+          pdoc qtools -o docs
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
