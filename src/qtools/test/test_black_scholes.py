@@ -18,7 +18,7 @@ import math
 import numpy as np
 import pytest
 
-from qtools.black_scholes import black_scholes, black_scholes_price, compute_iv, iv_solver
+from qtools.black_scholes import black_scholes, black_scholes_price, compute_iv, iv_solver, price_bs
 from qtools.errors import VolSolverWarning
 from qtools.options import MarketState, OptionContract, OptionQuote, OptionType
 
@@ -98,8 +98,7 @@ def test_iv_solver_arbitrage_warning_returns_nan():
         type=OptionType.EUROPEAN_CALL,
         K=100.0,
         maturity="2026-12-31",
-        T=1.0,
-    )
+        T=1.0,)
     market = MarketState(S=100.0, r=0.0)
     market_price = 150.0
 
@@ -126,3 +125,52 @@ def test_compute_iv_returns_new_quote_with_iv():
     assert updated.iv == pytest.approx(sigma, rel=1e-6)
     assert updated.contract == quote.contract
     assert updated.market_state == quote.market_state
+
+
+def test_black_scholes_with_invalid_inputs():
+    with pytest.raises(ValueError):
+        black_scholes(OptionType.EUROPEAN_CALL, S=-100.0, K=100.0, T=1.0, sigma=0.1, r=0.01)
+    with pytest.raises(ValueError):
+        black_scholes(OptionType.EUROPEAN_CALL, S=100.0, K=-100.0, T=1.0, sigma=0.1, r=0.01)
+    with pytest.raises(ValueError):
+        black_scholes(OptionType.EUROPEAN_CALL, S=100.0, K=100.0, T=1.0, sigma=-0.1, r=0.01)
+    with pytest.raises(ValueError):
+        black_scholes(OptionType.EUROPEAN_CALL, S=100.0, K=100.0, T=-1.0, sigma=0.1, r=0.01)
+
+
+def test_price_bs_vectorized_call_matches_scalar():
+    S = np.array([90.0, 100.0, 110.0])
+    K = np.array([100.0, 100.0, 100.0])
+    T = np.array([0.5, 1.0, 2.0])
+    sigma = np.array([0.2, 0.25, 0.3])
+    r = np.array([0.01, 0.02, 0.03])
+
+    prices = price_bs(OptionType.EUROPEAN_CALL, S, K, T, sigma, r)
+    expected = np.array([black_scholes(OptionType.EUROPEAN_CALL, s, k, t, vol, rate)
+                         for s, k, t, vol, rate in zip(S, K, T, sigma, r)])
+    assert np.allclose(prices, expected, rtol=1e-12, atol=1e-12)
+
+
+def test_price_bs_vectorized_put_matches_scalar():
+    S = np.array([95.0, 100.0, 105.0])
+    K = np.array([100.0, 100.0, 100.0])
+    T = np.array([0.25, 1.0, 1.5])
+    sigma = np.array([0.15, 0.2, 0.25])
+    r = np.array([0.0, 0.01, 0.02])
+
+    prices = price_bs(OptionType.EUROPEAN_PUT, S, K, T, sigma, r)
+    expected = np.array([black_scholes(OptionType.EUROPEAN_PUT, s, k, t, vol, rate)
+                         for s, k, t, vol, rate in zip(S, K, T, sigma, r)])
+    assert np.allclose(prices, expected, rtol=1e-12, atol=1e-12)
+
+
+def test_price_bs_vectorized_validation():
+    with pytest.raises(ValueError):
+        price_bs(
+            OptionType.EUROPEAN_CALL,
+            S=np.array([100.0, -1.0]),
+            K=np.array([100.0, 100.0]),
+            T=np.array([1.0, 1.0]),
+            sigma=np.array([0.2, 0.2]),
+            r=np.array([0.01, 0.01]),
+        )

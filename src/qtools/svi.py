@@ -264,3 +264,5 @@ def svi_error(book: OptionBook, fit: SVIParam, metric:str = "mse"):
         svi_tvar = svi_total_variance(lm, *fit)
         market_tvar = book.W
         return np.mean((svi_tvar-market_tvar)**2)
+    else:
+        raise SVIFitError(f"{metric} is not implemented. Metrics include ['mse']")

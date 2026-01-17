@@ -15,6 +15,7 @@ import numpy as np
 from typing import Optional
 from datetime import datetime
 import warnings
+from .errors import FetchedDataError, FetchedDataWarning
 
 
 #------------------------------------------------------------#
@@ -198,7 +199,7 @@ class OptionBook:
         -----
         np.nan and None are removed.  
         """
-        quote_list_clean = [q for q in self.quote_list if (not np.isnan(q.iv)) and (np.isfinite(q.iv))]
+        quote_list_clean = [q for q in self.quote_list if (not q.iv is None) and (not np.isnan(q.iv)) and (np.isfinite(q.iv))]
         return OptionBook(quote_list_clean)
 
 
@@ -310,6 +311,9 @@ class OptionBook:
 
     def __iter__(self):
         return iter(self.quote_list)
+
+    def __len__(self):
+        return len(self.quote_list)
     
 
 #------------------------------------------------------------#
@@ -410,7 +414,8 @@ def compute_T(quote : OptionQuote, valuation_date: Optional[str] = None):
     """
     
     T = time_to_mat(quote.maturity, valuation_date)
-    return replace(quote, T=T)
+    contract = replace(quote.contract, T=T)
+    return replace(quote, contract = contract)
     
 
 def time_to_mat( maturity: str, today: Optional[str] = None)->float:

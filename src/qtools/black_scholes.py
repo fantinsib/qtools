@@ -36,16 +36,17 @@ def black_scholes_price(contract: OptionContract, market: MarketState, sigma: fl
     
     Returns
     -------
-    A new OptionQuote object with the corresponding price
+    float 
+        The Black-Scholes price
     """
     price= black_scholes(contract.type, market.S, contract.K, contract.T, sigma, market.r)
     return price
-    # return OptionQuote(contract, market, model_price = price)
 
 def black_scholes(o_type: OptionType, S: float, K: float, T: float, sigma: float, r:float):
     """
     Returns the price of a european option from the given 
-    parameters according to the Black-Scholes model. 
+    parameters according to the Black-Scholes model. All inputs 
+    are expected to be scalar float
 
     Parameters
     ----------
@@ -74,8 +75,8 @@ def black_scholes(o_type: OptionType, S: float, K: float, T: float, sigma: float
     
     Notes
     -----
-    By default, the function computes time to expiry in years from today's date (datetime.now())
-    For reproductibility, set the argument equal to the desired date 
+    This function expects scalar as input. 
+    For the vectorized function, use price_bs()
     """
 
     if (S < 0):
@@ -92,20 +93,85 @@ def black_scholes(o_type: OptionType, S: float, K: float, T: float, sigma: float
     if o_type == OptionType.EUROPEAN_PUT:
         return _put_price_bs(S, K, T, sigma, r)
     
-#------------------------------------- private pricing functions ---------------------------
+#------------------------------------- private functions for scalar BS ---------------------------
 def _call_price_bs(S: float, K: float, T: float, sigma: float, r:float):
     d1 = (np.log(S/K) + (r +( sigma**2)/2)*T)/(sigma*np.sqrt(T))
     d2 = d1 - sigma*np.sqrt(T)
 
-    return S*numerical.norm_cdf(d1) - K*np.exp(-r*T)*numerical.norm_cdf(d2)
+    return S*numerical.norm_cdf(float(d1)) - K*np.exp(-r*T)*numerical.norm_cdf(float(d2))
 
 def _put_price_bs(S: float, K: float, T: float, sigma: float, r:float):
     d1 = (np.log(S/K) + (r +( sigma**2)/2)*T)/(sigma*np.sqrt(T))
     d2 = d1 - sigma*np.sqrt(T)
 
-    return -S*numerical.norm_cdf(-d1) + K*np.exp(-r*T)*numerical.norm_cdf(-d2)
+    return -S*numerical.norm_cdf(float(-d1)) + K*np.exp(-r*T)*numerical.norm_cdf(float(-d2))
 
 #-----------------------------------------------------------------------------------------
+
+def price_bs(o_type: OptionType, S:np.ndarray, K:np.ndarray, T:np.ndarray, sigma:np.ndarray, r:np.ndarray) ->np.ndarray:
+    """
+    Returns the prices of a european options from the given 
+    parameters according to the Black-Scholes model.
+
+    Parameters
+    ----------
+    o_type : OptionType
+        The option type (EuropeanCall or EuropeanPut)
+    S : np.ndarray
+        The spot price of the underlying 
+    K : np.ndarray
+        The strike price
+    T : np.ndarray
+        Time to maturity in years
+    sigma : np.ndarray
+        The pricing volatility
+    r : np.ndarray
+        The risk-free rate
+    
+    Returns
+    -------
+    np.ndarray
+        An array of resulting prices
+
+    Raises
+    ------
+    ValueError
+        If S, K contain negative values or sigma, T contain non strictly positive values
+    
+    """
+
+    if not np.all(S >= 0):
+        raise ValueError("S must be non-negative")
+    if not np.all(K >= 0):
+        raise ValueError("K must be non-negative")
+    if not np.all(sigma > 0):
+        raise ValueError("sigma must be strictly positive")
+    if not np.all(T > 0):
+        raise ValueError("T must be strictly positive")
+    if not np.all(o_type in list(OptionType)):
+        raise ValueError(f"OptionType must be in {list(OptionType)}")
+    
+    if o_type == OptionType.EUROPEAN_CALL:
+        return _call_price_bs_vec(S,K,T,sigma,r)
+    if o_type == OptionType.EUROPEAN_PUT:
+        return _put_price_bs_vec(S,K,T,sigma,r)
+    
+#-------------------------------------------------------
+
+def _call_price_bs_vec(S:np.ndarray, K:np.ndarray, T:np.ndarray, sigma:np.ndarray, r:np.ndarray):
+    d1 = (np.log(S/K) + (r +( sigma**2)/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+
+    return S*numerical.norm_cdf(d1) - K*np.exp(-r*T)*numerical.norm_cdf(d2)
+
+
+def _put_price_bs_vec(S:np.ndarray, K:np.ndarray, T:np.ndarray, sigma:np.ndarray, r:np.ndarray):
+    d1 = (np.log(S/K) + (r +( sigma**2)/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+
+    return -S*numerical.norm_cdf(-d1) + K*np.exp(-r*T)*numerical.norm_cdf(-d2)
+
+
 def iv_solver(market_price: float, contract: OptionContract, market: MarketState, sigma_min: float =  1e-6, sigma_max: float = 5, strict = False)->float:
     """
     Computes Black-Scholes implied volatility
