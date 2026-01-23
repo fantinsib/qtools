@@ -8,8 +8,9 @@ r"""
 """
 
 import pytest
+import numpy as np
 
-from qtools.numerical import norm_cdf
+from qtools.numerical import norm_cdf, correlated_brownians
 
 
 def test_norm_cdf_known_values():
@@ -22,7 +23,15 @@ def test_norm_cdf_symmetry():
     x = 0.7
     assert norm_cdf(x) == pytest.approx(1.0 - norm_cdf(-x), rel=1e-12)
 
-
-
 def test_norm_cdf_monotonicity():
     assert norm_cdf(-2.0) < norm_cdf(-1.0) < norm_cdf(0.0) < norm_cdf(1.0) < norm_cdf(2.0)
+
+def test_corr_brownians():
+    p = 0.6
+    W = correlated_brownians(p, 1.0, 50000)  
+
+    dW1 = np.diff(np.concatenate(([0.0], W[0])))
+    dW2 = np.diff(np.concatenate(([0.0], W[1])))
+
+    corr = np.corrcoef(dW1, dW2)[0, 1]
+    assert corr == pytest.approx(p, rel=0.02)

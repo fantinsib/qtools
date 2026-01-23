@@ -95,4 +95,31 @@ def finite_difference(f_x: np.ndarray, x: np.ndarray, degree: int = 1, axis:int 
 
     return np.moveaxis(d_f, 0, axis)
 
+def correlated_brownians(p: float, T: float, n: int) ->np.ndarray:
+    """
+    Generates two correlated brownian motion path
+
+    Parameters
+    ----------
+    p : float
+        The correlation of brownien increments comprised in [-1;1]
+    T : float
+        Time interval
+    n : int
+        Number of discretization steps over T
+
+    Returns
+    -------
+    np.ndarray
+        Array of shape (2,n) containing the brownian paths ; W0 = 0 not included
+    """
+    if (p < -1) or (p>1): raise ValueError("correlated_brownians : correlation must be in [-1,1]")
+    if (T<=0): raise ValueError("correlated_brownians : T must be positive")
+    if (n<=0) or not isinstance(n, int): raise ValueError("correlated_brownians : n must be a positive int")
+
+    dt = T/n
+    dW1 = np.random.normal(0, np.sqrt(dt), n)
+    dW2 = p*dW1 + np.sqrt(1-p**2)*np.random.normal(0,np.sqrt(dt),n)
+
+    return np.array([dW1.cumsum(), dW2.cumsum()])
 
