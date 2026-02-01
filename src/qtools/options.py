@@ -366,6 +366,62 @@ def fetch_option_data(ticker:str, maturities: list[str], o_type: OptionType)->pd
     df["S"] = s
     return df
 
+def make_book(type : OptionType, S : np.ndarray, K : np.ndarray, maturities : np.ndarray,
+                r : np.ndarray, bid : np.ndarray, ask: np.ndarray, valuation_date : str,
+                T : np.ndarray | None = None):
+    """
+    Makes an OptionBook from the specified arrays. 
+
+    Parameters
+    ----------
+    type : OptionType
+        The type of the option.
+    S : np.ndarray
+        An array of the spot prices.
+    K : np.ndarray
+       An array of the strike prices.
+    maturities : np.ndarray
+        Expiration date of the option in ``YYYY-MM-DD`` format.
+    r : np.ndarray
+        An array of the risk free rates.
+    bid : np.ndarray
+        The bid price for the option.
+    ask : np.ndarray
+        The ask price for the option.
+    valuation_date : str
+        The date from which to valuate the option.
+    T : np.ndarray, optional
+        The time-to-maturities in year (calculated automatically from
+        `maturities` and `valuation_date` if not specified)
+
+    Returns
+    -------
+    OptionBook
+
+    """
+    
+    n = len(S)
+
+    if not all(len(x) == n for x in (K, maturities, r, bid, ask)):
+        raise ValueError("All input arrays must have the same length ")
+
+    quote_list = []
+
+    if T is None:
+        T = []
+        for t in range(n):
+            T.append(time_to_mat(maturities[t], valuation_date))
+    else:
+        if len(T) != n: raise ValueError("All input arrays must have the same length ")
+
+    for i in range(n):
+        contract = OptionContract(type, T=T[i], K = K[i], maturity=maturities[i])
+        market = MarketState(S[i], r[i])
+        quote_list.append(OptionQuote(contract, market,market_price = (bid[i]+ask[i])/2, bid=bid[i], ask=ask[i]))
+
+    return OptionBook(quote_list)
+
+
 def to_quote(df: pd.DataFrame, r: float, valuation_date: Optional[str] = None, ticker: Optional[str]= None) -> list[OptionQuote]:
     """
     Converts a fetched df from fetch_option_data to a list of OptionQuote

@@ -21,6 +21,7 @@ from qtools.options import (
     OptionType,
     time_to_mat,
     to_quote,
+    make_book
 )
 
 
@@ -145,3 +146,43 @@ def test_option_book_compute_iv():
     updated = book.compute_iv()
 
     assert updated.quote_list[0].iv == pytest.approx(sigma, rel=1e-6)
+
+
+def test_make_book_no_T():
+    
+    call = OptionType.EUROPEAN_CALL
+    S = [100] * 3
+    K = [90, 105, 120]
+    maturities = ["2026-01-01","2026-01-01","2026-01-01"]
+    r = [0.05]*3
+    bid = [10,9,8]
+    ask = [11,10,9]
+    valuation_date = "2025-01-01"
+
+    book = make_book(call, S, K, maturities, r, bid, ask, valuation_date)
+
+    assert(isinstance(book, OptionBook))
+    assert(book.S[1]==100)
+    assert(book.K[2]==120)
+    mp = [10.5, 9.5, 8.5] 
+    assert(book.market_prices[x] == mp[x] for x in range(len(book)))
+
+def test_make_book_with_T():
+    
+    call = OptionType.EUROPEAN_CALL
+    S = [100] * 3
+    K = [90, 105, 120]
+    maturities = ["2026-01-01","2026-01-01","2026-01-01"]
+    r = [0.05]*3
+    bid = [10,9,8]
+    ask = [11,10,9]
+    valuation_date = "2025-01-01"
+    T = [0.2,0.4,0.8]
+
+    book = make_book(call, S, K, maturities, r, bid, ask, valuation_date, T)
+
+    assert(isinstance(book, OptionBook))
+    assert(book.S[1]==100)
+    assert(book.K[2]==120)
+    mp = [10.5, 9.5, 8.5] 
+    assert(book.market_prices[x] == mp[x] for x in range(len(book)))
