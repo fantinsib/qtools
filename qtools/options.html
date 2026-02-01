@@ -193,6 +193,9 @@
                     <a class="function" href="#fetch_option_data">fetch_option_data</a>
             </li>
             <li>
+                    <a class="function" href="#make_book">make_book</a>
+            </li>
+            <li>
                     <a class="function" href="#to_quote">to_quote</a>
             </li>
             <li>
@@ -597,81 +600,137 @@
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span>
 </span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>    <span class="k">return</span> <span class="n">df</span>
 </span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>
-</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a><span class="k">def</span><span class="w"> </span><span class="nf">to_quote</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ticker</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptionQuote</span><span class="p">]:</span>
-</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a><span class="sd">    Converts a fetched df from fetch_option_data to a list of OptionQuote</span>
-</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a><span class="sd">    Parameters</span>
-</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a><span class="sd">    ----------</span>
-</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a><span class="sd">    df : pandas.DataFrame</span>
-</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="sd">        The dataframe containing the option chain</span>
-</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a><span class="sd">    r : float </span>
-</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a><span class="sd">        The risk-free rate</span>
-</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a><span class="sd">    valuation_date : Optional[str]</span>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a><span class="sd">        Date used to compute time to maturity in years; default will use today&#39;s date</span>
-</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="sd">    ticker : Optional[str]</span>
-</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a><span class="sd">        Ticker of the underlying asset</span>
-</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>
-</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="sd">    Returns</span>
-</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a><span class="sd">    -------</span>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="sd">    list[OptionQuote]</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="sd">        A list of OptionQuote extracted from the df.</span>
-</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    
-</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
-</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">maturity</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">ticker</span><span class="o">=</span><span class="n">ticker</span><span class="p">)</span>
-</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
-</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="o">+</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">))</span> <span class="c1">#compute mid price</span>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a><span class="k">def</span><span class="w"> </span><span class="nf">make_book</span><span class="p">(</span><span class="nb">type</span> <span class="p">:</span> <span class="n">OptionType</span><span class="p">,</span> <span class="n">S</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">K</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">maturities</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>                <span class="n">r</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">bid</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">valuation_date</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>                <span class="n">T</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a><span class="sd">    Makes an OptionBook from the specified arrays. </span>
+</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>
+</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a><span class="sd">    Parameters</span>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="sd">    ----------</span>
+</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a><span class="sd">    type : OptionType</span>
+</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a><span class="sd">        The type of the option.</span>
+</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a><span class="sd">    S : np.ndarray</span>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a><span class="sd">        An array of the spot prices.</span>
+</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="sd">    K : np.ndarray</span>
+</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a><span class="sd">       An array of the strike prices.</span>
+</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a><span class="sd">    maturities : np.ndarray</span>
+</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="sd">        Expiration date of the option in ``YYYY-MM-DD`` format.</span>
+</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a><span class="sd">    r : np.ndarray</span>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="sd">        An array of the risk free rates.</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="sd">    bid : np.ndarray</span>
+</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a><span class="sd">        The bid price for the option.</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a><span class="sd">    ask : np.ndarray</span>
+</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a><span class="sd">        The ask price for the option.</span>
+</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a><span class="sd">    valuation_date : str</span>
+</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a><span class="sd">        The date from which to valuate the option.</span>
+</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a><span class="sd">    T : np.ndarray, optional</span>
+</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a><span class="sd">        The time-to-maturities in year (calculated automatically from</span>
+</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a><span class="sd">        `maturities` and `valuation_date` if not specified)</span>
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="k">return</span> <span class="n">quote_list</span>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>
-</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_T</span><span class="p">(</span><span class="n">quote</span> <span class="p">:</span> <span class="n">OptionQuote</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a><span class="sd">    Returns a new OptionQuote with T computed.</span>
-</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a><span class="sd">    Parameters</span>
-</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a><span class="sd">    ----------</span>
-</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a><span class="sd">    quote : OptionQuote</span>
-</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a><span class="sd">        The OptionQuote on which to compute T</span>
-</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a><span class="sd">    valuation_date : Optional[str]</span>
-</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a><span class="sd">        Date from which to compute. Default will use today&#39;s date</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a><span class="sd">    Returns</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a><span class="sd">    -------</span>
+</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a><span class="sd">    OptionBook</span>
+</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>
+</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>    
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>
+</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">maturities</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="p">)):</span>
+</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All input arrays must have the same length &quot;</span><span class="p">)</span>
+</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>
+</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>
-</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a><span class="sd">    Returns</span>
-</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="sd">    -------</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="sd">    OptionQuote</span>
-</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="sd">        A new OptionQuote with same characteristics and T</span>
-</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>    
-</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>    <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
-</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>    <span class="n">contract</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">contract</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
-</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="p">,</span> <span class="n">contract</span> <span class="o">=</span> <span class="n">contract</span><span class="p">)</span>
-</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>    
-</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>
-</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a><span class="k">def</span><span class="w"> </span><span class="nf">time_to_mat</span><span class="p">(</span> <span class="n">maturity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">today</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
-</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a><span class="sd">    Returns the time to maturity in years</span>
-</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a><span class="sd">    </span>
-</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a><span class="sd">    Parameters</span>
-</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a><span class="sd">    ----------</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">    maturity : str</span>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="sd">        The date of expiry of the contract.</span>
-</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">    today : Optional[str]</span>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">        Date from which to compute time to maturity. Default will compute from today&#39;s date</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">    Returns</span>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="sd">    -------</span>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">    float</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">        The time to maturity in years.</span>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="n">expiry</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">maturity</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">today</span><span class="p">:</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">today</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="k">return</span><span class="p">(</span><span class="n">expiry</span> <span class="o">-</span> <span class="n">now</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mf">365.0</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">3600.0</span><span class="p">)</span>
+</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>    <span class="k">if</span> <span class="n">T</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>            <span class="n">T</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_to_mat</span><span class="p">(</span><span class="n">maturities</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">valuation_date</span><span class="p">))</span>
+</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All input arrays must have the same length &quot;</span><span class="p">)</span>
+</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>
+</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">maturity</span><span class="o">=</span><span class="n">maturities</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span><span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">bid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">ask</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">bid</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ask</span><span class="o">=</span><span class="n">ask</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a>
+</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a>    <span class="k">return</span> <span class="n">OptionBook</span><span class="p">(</span><span class="n">quote_list</span><span class="p">)</span>
+</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a>
+</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>
+</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a><span class="k">def</span><span class="w"> </span><span class="nf">to_quote</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ticker</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptionQuote</span><span class="p">]:</span>
+</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">    Converts a fetched df from fetch_option_data to a list of OptionQuote</span>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>
+</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">    Parameters</span>
+</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">    ----------</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="sd">    df : pandas.DataFrame</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">        The dataframe containing the option chain</span>
+</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="sd">    r : float </span>
+</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">        The risk-free rate</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">    valuation_date : Optional[str]</span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">        Date used to compute time to maturity in years; default will use today&#39;s date</span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    ticker : Optional[str]</span>
+</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">        Ticker of the underlying asset</span>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a><span class="sd">    Returns</span>
+</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a><span class="sd">    -------</span>
+</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a><span class="sd">    list[OptionQuote]</span>
+</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a><span class="sd">        A list of OptionQuote extracted from the df.</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    
+</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">maturity</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">ticker</span><span class="o">=</span><span class="n">ticker</span><span class="p">)</span>
+</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="o">+</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">))</span> <span class="c1">#compute mid price</span>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>    <span class="k">return</span> <span class="n">quote_list</span>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>
+</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_T</span><span class="p">(</span><span class="n">quote</span> <span class="p">:</span> <span class="n">OptionQuote</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a><span class="sd">    Returns a new OptionQuote with T computed.</span>
+</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>
+</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a><span class="sd">    Parameters</span>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="sd">    ----------</span>
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a><span class="sd">    quote : OptionQuote</span>
+</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a><span class="sd">        The OptionQuote on which to compute T</span>
+</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a><span class="sd">    valuation_date : Optional[str]</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a><span class="sd">        Date from which to compute. Default will use today&#39;s date</span>
+</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a><span class="sd">    Returns</span>
+</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a><span class="sd">    -------</span>
+</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a><span class="sd">    OptionQuote</span>
+</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a><span class="sd">        A new OptionQuote with same characteristics and T</span>
+</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>    
+</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>    <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
+</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="n">contract</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">contract</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="p">,</span> <span class="n">contract</span> <span class="o">=</span> <span class="n">contract</span><span class="p">)</span>
+</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>    
+</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>
+</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a><span class="k">def</span><span class="w"> </span><span class="nf">time_to_mat</span><span class="p">(</span> <span class="n">maturity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">today</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a><span class="sd">    Returns the time to maturity in years</span>
+</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a><span class="sd">    </span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a><span class="sd">    Parameters</span>
+</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a><span class="sd">    ----------</span>
+</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a><span class="sd">    maturity : str</span>
+</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a><span class="sd">        The date of expiry of the contract.</span>
+</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a><span class="sd">    today : Optional[str]</span>
+</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a><span class="sd">        Date from which to compute time to maturity. Default will compute from today&#39;s date</span>
+</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a><span class="sd">    Returns</span>
+</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a><span class="sd">    -------</span>
+</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a><span class="sd">    float</span>
+</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="sd">        The time to maturity in years.</span>
+</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>    <span class="n">expiry</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">maturity</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>
+</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">today</span><span class="p">:</span>
+</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">today</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a>    <span class="k">return</span><span class="p">(</span><span class="n">expiry</span> <span class="o">-</span> <span class="n">now</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mf">365.0</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">3600.0</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1917,6 +1976,105 @@ The price of the underlying S is computed with with yfinance latest price.</p>
 
 
                 </section>
+                <section id="make_book">
+                            <input id="make_book-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">make_book</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="nb">type</span><span class="p">:</span> <span class="n"><a href="#OptionType">OptionType</a></span>,</span><span class="param">	<span class="n">S</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">K</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">maturities</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">r</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">bid</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">ask</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">valuation_date</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">T</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="make_book-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#make_book"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="make_book-370"><a href="#make_book-370"><span class="linenos">370</span></a><span class="k">def</span><span class="w"> </span><span class="nf">make_book</span><span class="p">(</span><span class="nb">type</span> <span class="p">:</span> <span class="n">OptionType</span><span class="p">,</span> <span class="n">S</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">K</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">maturities</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="make_book-371"><a href="#make_book-371"><span class="linenos">371</span></a>                <span class="n">r</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">bid</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">valuation_date</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="make_book-372"><a href="#make_book-372"><span class="linenos">372</span></a>                <span class="n">T</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="make_book-373"><a href="#make_book-373"><span class="linenos">373</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="make_book-374"><a href="#make_book-374"><span class="linenos">374</span></a><span class="sd">    Makes an OptionBook from the specified arrays. </span>
+</span><span id="make_book-375"><a href="#make_book-375"><span class="linenos">375</span></a>
+</span><span id="make_book-376"><a href="#make_book-376"><span class="linenos">376</span></a><span class="sd">    Parameters</span>
+</span><span id="make_book-377"><a href="#make_book-377"><span class="linenos">377</span></a><span class="sd">    ----------</span>
+</span><span id="make_book-378"><a href="#make_book-378"><span class="linenos">378</span></a><span class="sd">    type : OptionType</span>
+</span><span id="make_book-379"><a href="#make_book-379"><span class="linenos">379</span></a><span class="sd">        The type of the option.</span>
+</span><span id="make_book-380"><a href="#make_book-380"><span class="linenos">380</span></a><span class="sd">    S : np.ndarray</span>
+</span><span id="make_book-381"><a href="#make_book-381"><span class="linenos">381</span></a><span class="sd">        An array of the spot prices.</span>
+</span><span id="make_book-382"><a href="#make_book-382"><span class="linenos">382</span></a><span class="sd">    K : np.ndarray</span>
+</span><span id="make_book-383"><a href="#make_book-383"><span class="linenos">383</span></a><span class="sd">       An array of the strike prices.</span>
+</span><span id="make_book-384"><a href="#make_book-384"><span class="linenos">384</span></a><span class="sd">    maturities : np.ndarray</span>
+</span><span id="make_book-385"><a href="#make_book-385"><span class="linenos">385</span></a><span class="sd">        Expiration date of the option in ``YYYY-MM-DD`` format.</span>
+</span><span id="make_book-386"><a href="#make_book-386"><span class="linenos">386</span></a><span class="sd">    r : np.ndarray</span>
+</span><span id="make_book-387"><a href="#make_book-387"><span class="linenos">387</span></a><span class="sd">        An array of the risk free rates.</span>
+</span><span id="make_book-388"><a href="#make_book-388"><span class="linenos">388</span></a><span class="sd">    bid : np.ndarray</span>
+</span><span id="make_book-389"><a href="#make_book-389"><span class="linenos">389</span></a><span class="sd">        The bid price for the option.</span>
+</span><span id="make_book-390"><a href="#make_book-390"><span class="linenos">390</span></a><span class="sd">    ask : np.ndarray</span>
+</span><span id="make_book-391"><a href="#make_book-391"><span class="linenos">391</span></a><span class="sd">        The ask price for the option.</span>
+</span><span id="make_book-392"><a href="#make_book-392"><span class="linenos">392</span></a><span class="sd">    valuation_date : str</span>
+</span><span id="make_book-393"><a href="#make_book-393"><span class="linenos">393</span></a><span class="sd">        The date from which to valuate the option.</span>
+</span><span id="make_book-394"><a href="#make_book-394"><span class="linenos">394</span></a><span class="sd">    T : np.ndarray, optional</span>
+</span><span id="make_book-395"><a href="#make_book-395"><span class="linenos">395</span></a><span class="sd">        The time-to-maturities in year (calculated automatically from</span>
+</span><span id="make_book-396"><a href="#make_book-396"><span class="linenos">396</span></a><span class="sd">        `maturities` and `valuation_date` if not specified)</span>
+</span><span id="make_book-397"><a href="#make_book-397"><span class="linenos">397</span></a>
+</span><span id="make_book-398"><a href="#make_book-398"><span class="linenos">398</span></a><span class="sd">    Returns</span>
+</span><span id="make_book-399"><a href="#make_book-399"><span class="linenos">399</span></a><span class="sd">    -------</span>
+</span><span id="make_book-400"><a href="#make_book-400"><span class="linenos">400</span></a><span class="sd">    OptionBook</span>
+</span><span id="make_book-401"><a href="#make_book-401"><span class="linenos">401</span></a>
+</span><span id="make_book-402"><a href="#make_book-402"><span class="linenos">402</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="make_book-403"><a href="#make_book-403"><span class="linenos">403</span></a>    
+</span><span id="make_book-404"><a href="#make_book-404"><span class="linenos">404</span></a>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+</span><span id="make_book-405"><a href="#make_book-405"><span class="linenos">405</span></a>
+</span><span id="make_book-406"><a href="#make_book-406"><span class="linenos">406</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">maturities</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="p">)):</span>
+</span><span id="make_book-407"><a href="#make_book-407"><span class="linenos">407</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All input arrays must have the same length &quot;</span><span class="p">)</span>
+</span><span id="make_book-408"><a href="#make_book-408"><span class="linenos">408</span></a>
+</span><span id="make_book-409"><a href="#make_book-409"><span class="linenos">409</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="make_book-410"><a href="#make_book-410"><span class="linenos">410</span></a>
+</span><span id="make_book-411"><a href="#make_book-411"><span class="linenos">411</span></a>    <span class="k">if</span> <span class="n">T</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="make_book-412"><a href="#make_book-412"><span class="linenos">412</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="make_book-413"><a href="#make_book-413"><span class="linenos">413</span></a>        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="make_book-414"><a href="#make_book-414"><span class="linenos">414</span></a>            <span class="n">T</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_to_mat</span><span class="p">(</span><span class="n">maturities</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">valuation_date</span><span class="p">))</span>
+</span><span id="make_book-415"><a href="#make_book-415"><span class="linenos">415</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="make_book-416"><a href="#make_book-416"><span class="linenos">416</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All input arrays must have the same length &quot;</span><span class="p">)</span>
+</span><span id="make_book-417"><a href="#make_book-417"><span class="linenos">417</span></a>
+</span><span id="make_book-418"><a href="#make_book-418"><span class="linenos">418</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="make_book-419"><a href="#make_book-419"><span class="linenos">419</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">maturity</span><span class="o">=</span><span class="n">maturities</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="make_book-420"><a href="#make_book-420"><span class="linenos">420</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span id="make_book-421"><a href="#make_book-421"><span class="linenos">421</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span><span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">bid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">ask</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">bid</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ask</span><span class="o">=</span><span class="n">ask</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+</span><span id="make_book-422"><a href="#make_book-422"><span class="linenos">422</span></a>
+</span><span id="make_book-423"><a href="#make_book-423"><span class="linenos">423</span></a>    <span class="k">return</span> <span class="n">OptionBook</span><span class="p">(</span><span class="n">quote_list</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Makes an OptionBook from the specified arrays. </p>
+
+<h2 id="parameters">Parameters</h2>
+
+<p>type : OptionType
+    The type of the option.
+S : np.ndarray
+    An array of the spot prices.
+K : np.ndarray
+   An array of the strike prices.
+maturities : np.ndarray
+    Expiration date of the option in <code>YYYY-MM-DD</code> format.
+r : np.ndarray
+    An array of the risk free rates.
+bid : np.ndarray
+    The bid price for the option.
+ask : np.ndarray
+    The ask price for the option.
+valuation_date : str
+    The date from which to valuate the option.
+T : np.ndarray, optional
+    The time-to-maturities in year (calculated automatically from
+    <code>maturities</code> and <code>valuation_date</code> if not specified)</p>
+
+<h2 id="returns">Returns</h2>
+
+<p>OptionBook</p>
+</div>
+
+
+                </section>
                 <section id="to_quote">
                             <input id="to_quote-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -1928,35 +2086,35 @@ The price of the underlying S is computed with with yfinance latest price.</p>
 
     </div>
     <a class="headerlink" href="#to_quote"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="to_quote-370"><a href="#to_quote-370"><span class="linenos">370</span></a><span class="k">def</span><span class="w"> </span><span class="nf">to_quote</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ticker</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptionQuote</span><span class="p">]:</span>
-</span><span id="to_quote-371"><a href="#to_quote-371"><span class="linenos">371</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="to_quote-372"><a href="#to_quote-372"><span class="linenos">372</span></a><span class="sd">    Converts a fetched df from fetch_option_data to a list of OptionQuote</span>
-</span><span id="to_quote-373"><a href="#to_quote-373"><span class="linenos">373</span></a>
-</span><span id="to_quote-374"><a href="#to_quote-374"><span class="linenos">374</span></a><span class="sd">    Parameters</span>
-</span><span id="to_quote-375"><a href="#to_quote-375"><span class="linenos">375</span></a><span class="sd">    ----------</span>
-</span><span id="to_quote-376"><a href="#to_quote-376"><span class="linenos">376</span></a><span class="sd">    df : pandas.DataFrame</span>
-</span><span id="to_quote-377"><a href="#to_quote-377"><span class="linenos">377</span></a><span class="sd">        The dataframe containing the option chain</span>
-</span><span id="to_quote-378"><a href="#to_quote-378"><span class="linenos">378</span></a><span class="sd">    r : float </span>
-</span><span id="to_quote-379"><a href="#to_quote-379"><span class="linenos">379</span></a><span class="sd">        The risk-free rate</span>
-</span><span id="to_quote-380"><a href="#to_quote-380"><span class="linenos">380</span></a><span class="sd">    valuation_date : Optional[str]</span>
-</span><span id="to_quote-381"><a href="#to_quote-381"><span class="linenos">381</span></a><span class="sd">        Date used to compute time to maturity in years; default will use today&#39;s date</span>
-</span><span id="to_quote-382"><a href="#to_quote-382"><span class="linenos">382</span></a><span class="sd">    ticker : Optional[str]</span>
-</span><span id="to_quote-383"><a href="#to_quote-383"><span class="linenos">383</span></a><span class="sd">        Ticker of the underlying asset</span>
-</span><span id="to_quote-384"><a href="#to_quote-384"><span class="linenos">384</span></a>
-</span><span id="to_quote-385"><a href="#to_quote-385"><span class="linenos">385</span></a><span class="sd">    Returns</span>
-</span><span id="to_quote-386"><a href="#to_quote-386"><span class="linenos">386</span></a><span class="sd">    -------</span>
-</span><span id="to_quote-387"><a href="#to_quote-387"><span class="linenos">387</span></a><span class="sd">    list[OptionQuote]</span>
-</span><span id="to_quote-388"><a href="#to_quote-388"><span class="linenos">388</span></a><span class="sd">        A list of OptionQuote extracted from the df.</span>
-</span><span id="to_quote-389"><a href="#to_quote-389"><span class="linenos">389</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="to_quote-390"><a href="#to_quote-390"><span class="linenos">390</span></a>    
-</span><span id="to_quote-391"><a href="#to_quote-391"><span class="linenos">391</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="to_quote-392"><a href="#to_quote-392"><span class="linenos">392</span></a>    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-</span><span id="to_quote-393"><a href="#to_quote-393"><span class="linenos">393</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
-</span><span id="to_quote-394"><a href="#to_quote-394"><span class="linenos">394</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">maturity</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">ticker</span><span class="o">=</span><span class="n">ticker</span><span class="p">)</span>
-</span><span id="to_quote-395"><a href="#to_quote-395"><span class="linenos">395</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
-</span><span id="to_quote-396"><a href="#to_quote-396"><span class="linenos">396</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="o">+</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">))</span> <span class="c1">#compute mid price</span>
-</span><span id="to_quote-397"><a href="#to_quote-397"><span class="linenos">397</span></a>
-</span><span id="to_quote-398"><a href="#to_quote-398"><span class="linenos">398</span></a>    <span class="k">return</span> <span class="n">quote_list</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="to_quote-426"><a href="#to_quote-426"><span class="linenos">426</span></a><span class="k">def</span><span class="w"> </span><span class="nf">to_quote</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ticker</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptionQuote</span><span class="p">]:</span>
+</span><span id="to_quote-427"><a href="#to_quote-427"><span class="linenos">427</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="to_quote-428"><a href="#to_quote-428"><span class="linenos">428</span></a><span class="sd">    Converts a fetched df from fetch_option_data to a list of OptionQuote</span>
+</span><span id="to_quote-429"><a href="#to_quote-429"><span class="linenos">429</span></a>
+</span><span id="to_quote-430"><a href="#to_quote-430"><span class="linenos">430</span></a><span class="sd">    Parameters</span>
+</span><span id="to_quote-431"><a href="#to_quote-431"><span class="linenos">431</span></a><span class="sd">    ----------</span>
+</span><span id="to_quote-432"><a href="#to_quote-432"><span class="linenos">432</span></a><span class="sd">    df : pandas.DataFrame</span>
+</span><span id="to_quote-433"><a href="#to_quote-433"><span class="linenos">433</span></a><span class="sd">        The dataframe containing the option chain</span>
+</span><span id="to_quote-434"><a href="#to_quote-434"><span class="linenos">434</span></a><span class="sd">    r : float </span>
+</span><span id="to_quote-435"><a href="#to_quote-435"><span class="linenos">435</span></a><span class="sd">        The risk-free rate</span>
+</span><span id="to_quote-436"><a href="#to_quote-436"><span class="linenos">436</span></a><span class="sd">    valuation_date : Optional[str]</span>
+</span><span id="to_quote-437"><a href="#to_quote-437"><span class="linenos">437</span></a><span class="sd">        Date used to compute time to maturity in years; default will use today&#39;s date</span>
+</span><span id="to_quote-438"><a href="#to_quote-438"><span class="linenos">438</span></a><span class="sd">    ticker : Optional[str]</span>
+</span><span id="to_quote-439"><a href="#to_quote-439"><span class="linenos">439</span></a><span class="sd">        Ticker of the underlying asset</span>
+</span><span id="to_quote-440"><a href="#to_quote-440"><span class="linenos">440</span></a>
+</span><span id="to_quote-441"><a href="#to_quote-441"><span class="linenos">441</span></a><span class="sd">    Returns</span>
+</span><span id="to_quote-442"><a href="#to_quote-442"><span class="linenos">442</span></a><span class="sd">    -------</span>
+</span><span id="to_quote-443"><a href="#to_quote-443"><span class="linenos">443</span></a><span class="sd">    list[OptionQuote]</span>
+</span><span id="to_quote-444"><a href="#to_quote-444"><span class="linenos">444</span></a><span class="sd">        A list of OptionQuote extracted from the df.</span>
+</span><span id="to_quote-445"><a href="#to_quote-445"><span class="linenos">445</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="to_quote-446"><a href="#to_quote-446"><span class="linenos">446</span></a>    
+</span><span id="to_quote-447"><a href="#to_quote-447"><span class="linenos">447</span></a>    <span class="n">quote_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="to_quote-448"><a href="#to_quote-448"><span class="linenos">448</span></a>    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="to_quote-449"><a href="#to_quote-449"><span class="linenos">449</span></a>        <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
+</span><span id="to_quote-450"><a href="#to_quote-450"><span class="linenos">450</span></a>        <span class="n">contract</span> <span class="o">=</span> <span class="n">OptionContract</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">maturity</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span> <span class="n">ticker</span><span class="o">=</span><span class="n">ticker</span><span class="p">)</span>
+</span><span id="to_quote-451"><a href="#to_quote-451"><span class="linenos">451</span></a>        <span class="n">market</span> <span class="o">=</span> <span class="n">MarketState</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+</span><span id="to_quote-452"><a href="#to_quote-452"><span class="linenos">452</span></a>        <span class="n">quote_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OptionQuote</span><span class="p">(</span><span class="n">contract</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">market_price</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="o">+</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bid</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">bid</span><span class="p">,</span> <span class="n">ask</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">ask</span><span class="p">))</span> <span class="c1">#compute mid price</span>
+</span><span id="to_quote-453"><a href="#to_quote-453"><span class="linenos">453</span></a>
+</span><span id="to_quote-454"><a href="#to_quote-454"><span class="linenos">454</span></a>    <span class="k">return</span> <span class="n">quote_list</span>
 </span></pre></div>
 
 
@@ -1992,26 +2150,26 @@ ticker : Optional[str]
 
     </div>
     <a class="headerlink" href="#compute_T"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="compute_T-400"><a href="#compute_T-400"><span class="linenos">400</span></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_T</span><span class="p">(</span><span class="n">quote</span> <span class="p">:</span> <span class="n">OptionQuote</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="compute_T-401"><a href="#compute_T-401"><span class="linenos">401</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="compute_T-402"><a href="#compute_T-402"><span class="linenos">402</span></a><span class="sd">    Returns a new OptionQuote with T computed.</span>
-</span><span id="compute_T-403"><a href="#compute_T-403"><span class="linenos">403</span></a>
-</span><span id="compute_T-404"><a href="#compute_T-404"><span class="linenos">404</span></a><span class="sd">    Parameters</span>
-</span><span id="compute_T-405"><a href="#compute_T-405"><span class="linenos">405</span></a><span class="sd">    ----------</span>
-</span><span id="compute_T-406"><a href="#compute_T-406"><span class="linenos">406</span></a><span class="sd">    quote : OptionQuote</span>
-</span><span id="compute_T-407"><a href="#compute_T-407"><span class="linenos">407</span></a><span class="sd">        The OptionQuote on which to compute T</span>
-</span><span id="compute_T-408"><a href="#compute_T-408"><span class="linenos">408</span></a><span class="sd">    valuation_date : Optional[str]</span>
-</span><span id="compute_T-409"><a href="#compute_T-409"><span class="linenos">409</span></a><span class="sd">        Date from which to compute. Default will use today&#39;s date</span>
-</span><span id="compute_T-410"><a href="#compute_T-410"><span class="linenos">410</span></a>
-</span><span id="compute_T-411"><a href="#compute_T-411"><span class="linenos">411</span></a><span class="sd">    Returns</span>
-</span><span id="compute_T-412"><a href="#compute_T-412"><span class="linenos">412</span></a><span class="sd">    -------</span>
-</span><span id="compute_T-413"><a href="#compute_T-413"><span class="linenos">413</span></a><span class="sd">    OptionQuote</span>
-</span><span id="compute_T-414"><a href="#compute_T-414"><span class="linenos">414</span></a><span class="sd">        A new OptionQuote with same characteristics and T</span>
-</span><span id="compute_T-415"><a href="#compute_T-415"><span class="linenos">415</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="compute_T-416"><a href="#compute_T-416"><span class="linenos">416</span></a>    
-</span><span id="compute_T-417"><a href="#compute_T-417"><span class="linenos">417</span></a>    <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
-</span><span id="compute_T-418"><a href="#compute_T-418"><span class="linenos">418</span></a>    <span class="n">contract</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">contract</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
-</span><span id="compute_T-419"><a href="#compute_T-419"><span class="linenos">419</span></a>    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="p">,</span> <span class="n">contract</span> <span class="o">=</span> <span class="n">contract</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="compute_T-456"><a href="#compute_T-456"><span class="linenos">456</span></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_T</span><span class="p">(</span><span class="n">quote</span> <span class="p">:</span> <span class="n">OptionQuote</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="compute_T-457"><a href="#compute_T-457"><span class="linenos">457</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="compute_T-458"><a href="#compute_T-458"><span class="linenos">458</span></a><span class="sd">    Returns a new OptionQuote with T computed.</span>
+</span><span id="compute_T-459"><a href="#compute_T-459"><span class="linenos">459</span></a>
+</span><span id="compute_T-460"><a href="#compute_T-460"><span class="linenos">460</span></a><span class="sd">    Parameters</span>
+</span><span id="compute_T-461"><a href="#compute_T-461"><span class="linenos">461</span></a><span class="sd">    ----------</span>
+</span><span id="compute_T-462"><a href="#compute_T-462"><span class="linenos">462</span></a><span class="sd">    quote : OptionQuote</span>
+</span><span id="compute_T-463"><a href="#compute_T-463"><span class="linenos">463</span></a><span class="sd">        The OptionQuote on which to compute T</span>
+</span><span id="compute_T-464"><a href="#compute_T-464"><span class="linenos">464</span></a><span class="sd">    valuation_date : Optional[str]</span>
+</span><span id="compute_T-465"><a href="#compute_T-465"><span class="linenos">465</span></a><span class="sd">        Date from which to compute. Default will use today&#39;s date</span>
+</span><span id="compute_T-466"><a href="#compute_T-466"><span class="linenos">466</span></a>
+</span><span id="compute_T-467"><a href="#compute_T-467"><span class="linenos">467</span></a><span class="sd">    Returns</span>
+</span><span id="compute_T-468"><a href="#compute_T-468"><span class="linenos">468</span></a><span class="sd">    -------</span>
+</span><span id="compute_T-469"><a href="#compute_T-469"><span class="linenos">469</span></a><span class="sd">    OptionQuote</span>
+</span><span id="compute_T-470"><a href="#compute_T-470"><span class="linenos">470</span></a><span class="sd">        A new OptionQuote with same characteristics and T</span>
+</span><span id="compute_T-471"><a href="#compute_T-471"><span class="linenos">471</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="compute_T-472"><a href="#compute_T-472"><span class="linenos">472</span></a>    
+</span><span id="compute_T-473"><a href="#compute_T-473"><span class="linenos">473</span></a>    <span class="n">T</span> <span class="o">=</span> <span class="n">time_to_mat</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">maturity</span><span class="p">,</span> <span class="n">valuation_date</span><span class="p">)</span>
+</span><span id="compute_T-474"><a href="#compute_T-474"><span class="linenos">474</span></a>    <span class="n">contract</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="o">.</span><span class="n">contract</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+</span><span id="compute_T-475"><a href="#compute_T-475"><span class="linenos">475</span></a>    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">quote</span><span class="p">,</span> <span class="n">contract</span> <span class="o">=</span> <span class="n">contract</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -2043,29 +2201,29 @@ valuation_date : Optional[str]
 
     </div>
     <a class="headerlink" href="#time_to_mat"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="time_to_mat-422"><a href="#time_to_mat-422"><span class="linenos">422</span></a><span class="k">def</span><span class="w"> </span><span class="nf">time_to_mat</span><span class="p">(</span> <span class="n">maturity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">today</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
-</span><span id="time_to_mat-423"><a href="#time_to_mat-423"><span class="linenos">423</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="time_to_mat-424"><a href="#time_to_mat-424"><span class="linenos">424</span></a><span class="sd">    Returns the time to maturity in years</span>
-</span><span id="time_to_mat-425"><a href="#time_to_mat-425"><span class="linenos">425</span></a><span class="sd">    </span>
-</span><span id="time_to_mat-426"><a href="#time_to_mat-426"><span class="linenos">426</span></a><span class="sd">    Parameters</span>
-</span><span id="time_to_mat-427"><a href="#time_to_mat-427"><span class="linenos">427</span></a><span class="sd">    ----------</span>
-</span><span id="time_to_mat-428"><a href="#time_to_mat-428"><span class="linenos">428</span></a><span class="sd">    maturity : str</span>
-</span><span id="time_to_mat-429"><a href="#time_to_mat-429"><span class="linenos">429</span></a><span class="sd">        The date of expiry of the contract.</span>
-</span><span id="time_to_mat-430"><a href="#time_to_mat-430"><span class="linenos">430</span></a><span class="sd">    today : Optional[str]</span>
-</span><span id="time_to_mat-431"><a href="#time_to_mat-431"><span class="linenos">431</span></a><span class="sd">        Date from which to compute time to maturity. Default will compute from today&#39;s date</span>
-</span><span id="time_to_mat-432"><a href="#time_to_mat-432"><span class="linenos">432</span></a>
-</span><span id="time_to_mat-433"><a href="#time_to_mat-433"><span class="linenos">433</span></a><span class="sd">    Returns</span>
-</span><span id="time_to_mat-434"><a href="#time_to_mat-434"><span class="linenos">434</span></a><span class="sd">    -------</span>
-</span><span id="time_to_mat-435"><a href="#time_to_mat-435"><span class="linenos">435</span></a><span class="sd">    float</span>
-</span><span id="time_to_mat-436"><a href="#time_to_mat-436"><span class="linenos">436</span></a><span class="sd">        The time to maturity in years.</span>
-</span><span id="time_to_mat-437"><a href="#time_to_mat-437"><span class="linenos">437</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="time_to_mat-438"><a href="#time_to_mat-438"><span class="linenos">438</span></a>    <span class="n">expiry</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">maturity</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="time_to_mat-439"><a href="#time_to_mat-439"><span class="linenos">439</span></a>
-</span><span id="time_to_mat-440"><a href="#time_to_mat-440"><span class="linenos">440</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">today</span><span class="p">:</span>
-</span><span id="time_to_mat-441"><a href="#time_to_mat-441"><span class="linenos">441</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-</span><span id="time_to_mat-442"><a href="#time_to_mat-442"><span class="linenos">442</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="time_to_mat-443"><a href="#time_to_mat-443"><span class="linenos">443</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">today</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="time_to_mat-444"><a href="#time_to_mat-444"><span class="linenos">444</span></a>    <span class="k">return</span><span class="p">(</span><span class="n">expiry</span> <span class="o">-</span> <span class="n">now</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mf">365.0</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">3600.0</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="time_to_mat-478"><a href="#time_to_mat-478"><span class="linenos">478</span></a><span class="k">def</span><span class="w"> </span><span class="nf">time_to_mat</span><span class="p">(</span> <span class="n">maturity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">today</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+</span><span id="time_to_mat-479"><a href="#time_to_mat-479"><span class="linenos">479</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="time_to_mat-480"><a href="#time_to_mat-480"><span class="linenos">480</span></a><span class="sd">    Returns the time to maturity in years</span>
+</span><span id="time_to_mat-481"><a href="#time_to_mat-481"><span class="linenos">481</span></a><span class="sd">    </span>
+</span><span id="time_to_mat-482"><a href="#time_to_mat-482"><span class="linenos">482</span></a><span class="sd">    Parameters</span>
+</span><span id="time_to_mat-483"><a href="#time_to_mat-483"><span class="linenos">483</span></a><span class="sd">    ----------</span>
+</span><span id="time_to_mat-484"><a href="#time_to_mat-484"><span class="linenos">484</span></a><span class="sd">    maturity : str</span>
+</span><span id="time_to_mat-485"><a href="#time_to_mat-485"><span class="linenos">485</span></a><span class="sd">        The date of expiry of the contract.</span>
+</span><span id="time_to_mat-486"><a href="#time_to_mat-486"><span class="linenos">486</span></a><span class="sd">    today : Optional[str]</span>
+</span><span id="time_to_mat-487"><a href="#time_to_mat-487"><span class="linenos">487</span></a><span class="sd">        Date from which to compute time to maturity. Default will compute from today&#39;s date</span>
+</span><span id="time_to_mat-488"><a href="#time_to_mat-488"><span class="linenos">488</span></a>
+</span><span id="time_to_mat-489"><a href="#time_to_mat-489"><span class="linenos">489</span></a><span class="sd">    Returns</span>
+</span><span id="time_to_mat-490"><a href="#time_to_mat-490"><span class="linenos">490</span></a><span class="sd">    -------</span>
+</span><span id="time_to_mat-491"><a href="#time_to_mat-491"><span class="linenos">491</span></a><span class="sd">    float</span>
+</span><span id="time_to_mat-492"><a href="#time_to_mat-492"><span class="linenos">492</span></a><span class="sd">        The time to maturity in years.</span>
+</span><span id="time_to_mat-493"><a href="#time_to_mat-493"><span class="linenos">493</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="time_to_mat-494"><a href="#time_to_mat-494"><span class="linenos">494</span></a>    <span class="n">expiry</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">maturity</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="time_to_mat-495"><a href="#time_to_mat-495"><span class="linenos">495</span></a>
+</span><span id="time_to_mat-496"><a href="#time_to_mat-496"><span class="linenos">496</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">today</span><span class="p">:</span>
+</span><span id="time_to_mat-497"><a href="#time_to_mat-497"><span class="linenos">497</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+</span><span id="time_to_mat-498"><a href="#time_to_mat-498"><span class="linenos">498</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="time_to_mat-499"><a href="#time_to_mat-499"><span class="linenos">499</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">today</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="time_to_mat-500"><a href="#time_to_mat-500"><span class="linenos">500</span></a>    <span class="k">return</span><span class="p">(</span><span class="n">expiry</span> <span class="o">-</span> <span class="n">now</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mf">365.0</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">*</span> <span class="mf">3600.0</span><span class="p">)</span>
 </span></pre></div>
 
 
